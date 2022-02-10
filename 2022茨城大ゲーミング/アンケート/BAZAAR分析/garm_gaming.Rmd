@@ -1,0 +1,245 @@
+---
+title: "garm_gaming"
+output: html_notebook
+---
+
+```{r}
+#データ等下準備
+data<-read.csv("BAZAAR.csv",header=TRUE)
+
+library(tidyverse)
+
+```
+
+# 回答割合の変化の検定
+
+## 衣服観の変化の検定（t検定）
+
+```{r}
+#対応のあるt検定（同じサンプルの前後の差についての検定なので）
+t.test(data$garm_coldhot2,data$garm_coldhot1,paired=T) #10%水準有意
+t.test(data$garm_fashion2,data$garm_fashion1,paired=T) #有意でない
+t.test(data$garm_presentation2,data$garm_presentation1,paired=T) #10%水準有意
+t.test(data$garm_body2,data$garm_body1,paired=T) #5%水準有意
+t.test(data$garm_transform2,data$garm_transform1,paired=T)#有意でない
+t.test(data$garm_custom2,data$garm_custom1,paired=T)#有意でない
+t.test(data$garm_unity2,data$garm_unity1,paired=T)#1%水準有意
+t.test(data$garm_memory2,data$garm_memory1,paired=T)#0.01%水準有意
+```
+
+## 衣服を大切に扱う理由・回答割合の変化の検定
+
+```{r}
+before<-table(data$garm_why1) 
+after<-table(data$garm_why2)
+
+before_df<-as.data.frame(before)
+after_df<-as.data.frame(after)
+
+Var1<-c("不用な衣服は大切に扱うべきだと思わない","物を大切にした方が経済的で得だから")
+Freq<-c(0,0)
+
+add_df<-data.frame(Var1,Freq)
+
+
+after_df2<-rbind(after_df,add_df)
+
+Var1<-c("無回答")
+Freq<-c(0)
+add_df2<-data.frame(Var1,Freq)
+
+after_df3<-rbind(after_df2,add_df2)
+
+
+
+df<-cbind(before_df,after_df3)
+
+
+
+df<-df[,-3]
+df<-df[,-1]
+
+
+mynames_r<-c("思い出","資源保全","他人のオプション","大切にしなくていい","節約","無回答")
+#「わからない」という回答者はいないのでラベルはつくらない。
+
+
+rownames(df)<-mynames_r
+
+mynames_c<-c("before","after")
+colnames(df)<-mynames_c
+
+df
+
+#やっとデータフレームをつくれた。
+
+fisher.test(df)
+#10%水準有意
+
+
+
+
+# 比率（縦％）を確認
+round(t(t(df) / colSums(df)) * 100, 1)
+
+# カイ二乗検定
+RES <- chisq.test(df)
+
+# 調整残差
+RES$stdres
+
+# 残差分析のｐ値を算出
+p.value.matrix <- pnorm(abs(RES$stdres), lower.tail=FALSE)*2
+round(p.value.matrix, 4)
+
+# ホルムの方法による有意水準の調整（多重比較）
+Dim <- dim(df)
+p.value.matrix.holm <- matrix(p.adjust(p.value.matrix), Dim[1], Dim[2])
+dimnames(p.value.matrix.holm) <- dimnames(df) 
+round(p.value.matrix.holm, 4)
+
+
+# 全体としては有意に変化してるけど、個別で見てくと変化してるとはいえない、ということ。
+```
+
+-   全体では10％水準有意。下位検定では有意でない。
+
+## ルームメイトへの対応・回答割合の変化の検定
+
+```{r}
+before<-table(data$roomshare1) 
+after<-table(data$roomshare2)
+
+before_df<-as.data.frame(before)
+after_df<-as.data.frame(after)
+
+
+
+Var1<-c("どうして手放すのに抵抗があるのかその同居者が気付けるように、一緒に話し合ったり、ルームシェアをしていくうえで問題となることを伝え、どうすべきかをみんなで一緒に考える。")
+Freq<-c(0)
+
+add_df<-data.frame(Var1,Freq)
+
+
+after_df2<-rbind(after_df,add_df)
+
+
+after_df3<-after_df2[c(1,6,2,3,4,5),]
+
+
+
+df<-cbind(before_df,after_df3)
+
+
+
+df<-df[,-3]
+df<-df[,-1]
+
+
+mynames_r<-c("解消","話し合う","手放す","考える","多数決","待つ")
+
+
+
+rownames(df)<-mynames_r
+
+mynames_c<-c("before","after")
+colnames(df)<-mynames_c
+
+df
+#やっとデータフレームをつくれた。
+
+
+fisher.test(df)
+#有意でない
+
+
+
+
+# 比率（縦％）を確認
+round(t(t(df) / colSums(df)) * 100, 1)
+
+# カイ二乗検定
+RES <- chisq.test(df)
+
+# 調整残差
+RES$stdres
+
+# 残差分析のｐ値を算出
+p.value.matrix <- pnorm(abs(RES$stdres), lower.tail=FALSE)*2
+round(p.value.matrix, 4)
+
+# ホルムの方法による有意水準の調整（多重比較）
+Dim <- dim(df)
+p.value.matrix.holm <- matrix(p.adjust(p.value.matrix), Dim[1], Dim[2])
+dimnames(p.value.matrix.holm) <- dimnames(df) 
+round(p.value.matrix.holm, 4)
+
+
+#全く有意でない
+```
+
+-   全体でも下位検定でも有意でない。
+
+## 皆川提案の解釈・回答割合の変化の検定
+
+```{r}
+before<-table(data$minakawa1) 
+after<-table(data$minakawa2)
+
+before_df<-as.data.frame(before)
+after_df<-as.data.frame(after)
+
+
+
+
+df<-cbind(before_df,after_df)
+
+
+
+df<-df[,-3]
+df<-df[,-1]
+
+
+mynames_r<-c("思い出づくり","有効活用","良い物を買う","不便を楽しむ")
+
+
+
+rownames(df)<-mynames_r
+
+mynames_c<-c("before","after")
+colnames(df)<-mynames_c
+
+df
+#やっとデータフレームをつくれた。
+
+
+fisher.test(df)
+#有意でない
+
+
+
+
+# 比率（縦％）を確認
+round(t(t(df) / colSums(df)) * 100, 1)
+
+# カイ二乗検定
+RES <- chisq.test(df)
+
+# 調整残差
+RES$stdres
+
+# 残差分析のｐ値を算出
+p.value.matrix <- pnorm(abs(RES$stdres), lower.tail=FALSE)*2
+round(p.value.matrix, 4)
+
+# ホルムの方法による有意水準の調整（多重比較）
+Dim <- dim(df)
+p.value.matrix.holm <- matrix(p.adjust(p.value.matrix), Dim[1], Dim[2])
+dimnames(p.value.matrix.holm) <- dimnames(df) 
+round(p.value.matrix.holm, 4)
+
+
+#全く有意でない
+```
+
+-   全体でも下位検定でも有意でない。
